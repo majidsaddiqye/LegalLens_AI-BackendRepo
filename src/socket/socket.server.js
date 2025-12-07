@@ -3,7 +3,7 @@ const cookie = require("cookie");
 const JWT = require("jsonwebtoken");
 const userModel = require("../models/user.model");
 const messageModel = require("../models/message.model");
-const lgenerateLegalResponse = require("../services/ai.service");
+const {generateLegalResponse} = require("../services/ai.service");
 
 function initializeSocket(httpServer) {
   const io = new Server(httpServer);
@@ -20,7 +20,13 @@ function initializeSocket(httpServer) {
     //JWT Token Verifying
     try {
       const decoded = JWT.verify(cookies.token, process.env.JWT_SECRET);
+      console.log("Decoded User ID for DB search:", decoded.id);
       const user = await userModel.findById(decoded.id);
+
+      if (!user) {
+        console.error(`User not found for ID: ${userIdToSearch}`);
+        return next(new Error("Authentication failed: User not found in database."));
+    }
       socket.user = user;
       next();
     } catch (error) {
@@ -42,7 +48,7 @@ function initializeSocket(httpServer) {
 
       let response;
       try {
-        response = await lgenerateLegalResponse(messagePayload.content, messagePayload.fileDetails);
+        response = await generateLegalResponse(messagePayload.content, messagePayload.fileDetails);
       } catch (aiError) {
         console.error("AI Generation Error:", aiError);
         
