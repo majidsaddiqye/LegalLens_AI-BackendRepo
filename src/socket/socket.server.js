@@ -20,7 +20,6 @@ function initializeSocket(httpServer) {
     //JWT Token Verifying
     try {
       const decoded = JWT.verify(cookies.token, process.env.JWT_SECRET);
-      console.log("Decoded User ID for DB search:", decoded.id);
       const user = await userModel.findById(decoded.id);
 
       if (!user) {
